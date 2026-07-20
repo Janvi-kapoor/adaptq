@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/mnt/e/Researches/AdaptQ/adapTQ/build_wsl/_deps/catch2-subbuild/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

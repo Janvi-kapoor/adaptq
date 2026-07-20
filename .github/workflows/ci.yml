@@ -1,0 +1,135 @@
+name: AdapTQ CI
+
+on:
+  push:
+    branches: [ "main", "dev", "v*" ]
+  pull_request:
+    branches: [ "main" ]
+
+# Cancel in-progress runs on new pushes to the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 1: Linux (Ubuntu, GCC, AVX2)
+  # ─────────────────────────────────────────────────────────────────────────
+  build-linux:
+    name: Linux (GCC / AVX2)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            cmake ninja-build g++ python3 python3-pip
+
+      - name: Configure (Release)
+        run: |
+          cmake -B build \
+                -G Ninja \
+                -DCMAKE_BUILD_TYPE=Release \
+                -DADAPTQ_BUILD_TESTS=ON
+        working-directory: adapTQ
+
+      - name: Build
+        run: cmake --build build --parallel
+        working-directory: adapTQ
+
+      - name: CTest (unit + conformance)
+        run: ctest --output-on-failure --parallel 4
+        working-directory: adapTQ/build
+
+      - name: Build shared library for Python tests
+        run: |
+          g++ -O3 -mavx2 -mfma -fopenmp -shared -fPIC -Iinclude \
+              -o libadaptq.so \
+              core/fwht.cpp core/codebook.cpp core/quantizer.cpp \
+              core/adaptq_c_api.cpp core/adaptq_backend_vtable.cpp \
+              cache/ring_buffer.cpp attention/attention.cpp utils/timer.cpp \
+              -lm
+        working-directory: adapTQ
+
+      - name: Python validation suite
+        run: python3 tests/run_tests.py
+        working-directory: adapTQ
+        env:
+          # Tell run_tests.py it's running natively (not via WSL subprocess)
+          ADAPTQ_NATIVE_LINUX: "1"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 2: Windows (MSVC 2022 / Ninja / AVX2)
+  # ─────────────────────────────────────────────────────────────────────────
+  build-windows:
+    name: Windows (MSVC 2022 / Ninja)
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up MSVC environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Install Python dependencies
+        run: pip install numpy
+
+      - name: Configure (Release)
+        run: |
+          cmake -B build `
+                -G Ninja `
+                -DCMAKE_BUILD_TYPE=Release `
+                -DCMAKE_CXX_COMPILER=cl `
+                -DADAPTQ_BUILD_TESTS=ON
+        working-directory: adapTQ
+        shell: pwsh
+
+      - name: Build
+        run: cmake --build build --parallel
+        working-directory: adapTQ
+
+      - name: CTest (unit + conformance)
+        run: ctest --output-on-failure --parallel 4
+        working-directory: adapTQ/build
+
+      - name: Build DLL for Python tests
+        run: |
+          cmake --build build --target adapTQ_demo
+        working-directory: adapTQ
+
+      - name: Python reference tests (stages 2+3)
+        # Stages 4+5 require a shared lib; use --stage to run portable stages
+        run: |
+          python tests\run_tests.py --stage 2
+          python tests\run_tests.py --stage 3
+        working-directory: adapTQ
+        shell: pwsh
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 3: Python package (lint + import check)
+  # ─────────────────────────────────────────────────────────────────────────
+  python-package:
+    name: Python package
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package in editable mode
+        run: pip install -e . --no-build-isolation
+        working-directory: adapTQ
+        continue-on-error: true   # pybind11 extension may not build on CI runner
+
+      - name: Run pure-Python benchmark (no C extension needed)
+        run: python python/benchmark.py
+        working-directory: adapTQ

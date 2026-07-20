@@ -1,15 +1,34 @@
 #include "../include/quantizer.h"
 #include "../include/codebook.h"
 #include "../include/fwht.h"
+#include <cassert>
 #include <cmath>
 #include <cstring>
 
-static thread_local float tl_float_buf[1024];
-static thread_local uint8_t tl_idx_buf[1024];
+// Maximum padded dimension supported by thread-local scratch buffers.
+// padded = next_pow2(head_dim). If head_dim > 512, padded > 1024 at 2-bit.
+// Increase this constant (and recompile) if you need larger head dims.
+static constexpr int ADAPTQ_TL_BUF_FLOATS = 1024;
+static constexpr int ADAPTQ_TL_BUF_BYTES  = 1024;
+
+static_assert(ADAPTQ_TL_BUF_FLOATS >= 1024,
+              "Thread-local float buffer must hold at least 1024 elements");
+
+static thread_local float   tl_float_buf[ADAPTQ_TL_BUF_FLOATS];
+static thread_local uint8_t tl_idx_buf[ADAPTQ_TL_BUF_BYTES];
 
 void Quantizer::init(int d, uint64_t seed) {
   dim = d;
   padded = next_pow2(d);
+  // Fail loudly at context-creation time rather than silently corrupting
+  // memory deep in the quantize hot path. Increase ADAPTQ_TL_BUF_FLOATS
+  // and ADAPTQ_TL_BUF_BYTES in this file if you need larger head dimensions.
+  assert(padded <= ADAPTQ_TL_BUF_FLOATS &&
+         "head_dim too large: padded > ADAPTQ_TL_BUF_FLOATS. "
+         "Increase ADAPTQ_TL_BUF_FLOATS in quantizer.cpp.");
+  assert(padded <= ADAPTQ_TL_BUF_BYTES &&
+         "head_dim too large: padded > ADAPTQ_TL_BUF_BYTES. "
+         "Increase ADAPTQ_TL_BUF_BYTES in quantizer.cpp.");
   D.resize(padded);
   gen_rademacher(D.data(), padded, seed);
 }

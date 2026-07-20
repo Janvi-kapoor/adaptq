@@ -1,9 +1,13 @@
 #include "../include/fwht.h"
+#include <cassert>
 #include <cmath>
 #include <cstring>
 
 // Thread-local pad buffer so fwht_forward/inverse never heap-allocate.
-static thread_local float tl_pad_buf[256];
+// Must be >= max next_pow2(head_dim) used by any context in this process.
+// Increase ADAPTQ_FWHT_PAD_BUF if you need head_dim > 512.
+static constexpr int ADAPTQ_FWHT_PAD_BUF = 1024;
+static thread_local float tl_pad_buf[ADAPTQ_FWHT_PAD_BUF];
 
 int next_pow2(int n) {
     if (n <= 1) return 1;
@@ -82,6 +86,9 @@ void fwht_forward(float* x, const int8_t* D, int d) {
     int p = next_pow2(d);
     float* work = x;
     if (p != d) {
+        assert(p <= ADAPTQ_FWHT_PAD_BUF &&
+               "FWHT padded dimension exceeds tl_pad_buf. "
+               "Increase ADAPTQ_FWHT_PAD_BUF in fwht.cpp.");
         memcpy(tl_pad_buf, x, d * sizeof(float));
         memset(tl_pad_buf + d, 0, (p - d) * sizeof(float));
         work = tl_pad_buf;
@@ -95,6 +102,9 @@ void fwht_inverse(float* x, const int8_t* D, int d) {
     int p = next_pow2(d);
     float* work = x;
     if (p != d) {
+        assert(p <= ADAPTQ_FWHT_PAD_BUF &&
+               "FWHT padded dimension exceeds tl_pad_buf. "
+               "Increase ADAPTQ_FWHT_PAD_BUF in fwht.cpp.");
         memcpy(tl_pad_buf, x, d * sizeof(float));
         memset(tl_pad_buf + d, 0, (p - d) * sizeof(float));
         work = tl_pad_buf;

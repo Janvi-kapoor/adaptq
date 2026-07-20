@@ -12,6 +12,23 @@ extern "C" {
  * Thread-safe: each handle is independent.
  * ----------------------------------------------------------------------- */
 
+/* ---- Error codes ---- */
+
+typedef enum {
+  ADAPTQ_OK                = 0,
+  ADAPTQ_ERR_ALLOC         = 1, /* memory allocation failed              */
+  ADAPTQ_ERR_INVALID_ARG   = 2, /* NULL handle, out-of-range bits/dim    */
+  ADAPTQ_ERR_OUT_OF_BOUNDS = 3, /* head_idx >= n_heads, dim > buffer cap */
+  ADAPTQ_ERR_UNSUPPORTED   = 4  /* requested feature not compiled in     */
+} adaptq_error_t;
+
+/**
+ * Returns a human-readable description of the last error on this thread.
+ * Returns an empty string if no error has occurred.
+ * The returned pointer is valid until the next adaptq call on this thread.
+ */
+const char *adaptq_last_error(void);
+
 typedef void *adaptq_ctx_t; /* opaque per-head context */
 typedef void *adaptq_mha_t; /* opaque multi-head aggregate */
 

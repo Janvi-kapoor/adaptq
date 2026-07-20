@@ -4,6 +4,14 @@
 #include <cmath>
 #include <cstring>
 
+/* Portable cache prefetch — __builtin_prefetch is GCC/Clang only */
+#if defined(_MSC_VER)
+#  include <xmmintrin.h>
+#  define ADAPTQ_PREFETCH(ptr) _mm_prefetch(reinterpret_cast<const char*>(ptr), _MM_HINT_T1)
+#else
+#  define ADAPTQ_PREFETCH(ptr) __builtin_prefetch((ptr), 0, 1)
+#endif
+
 #ifdef __AVX2__
 #include <immintrin.h>
 
@@ -302,15 +310,15 @@ static void compute_avx2(const float *qr, float *acc, const float *cb,
   for (; i + 3 < n; i += 4) {
     int s0 = slots[i], s1 = slots[i + 1], s2 = slots[i + 2], s3 = slots[i + 3];
     if (i + 7 < n) {
-      __builtin_prefetch(kb + (size_t)slots[i + 4] * pb, 0, 1);
-      __builtin_prefetch(kb + (size_t)slots[i + 5] * pb, 0, 1);
-      __builtin_prefetch(kb + (size_t)slots[i + 6] * pb, 0, 1);
-      __builtin_prefetch(kb + (size_t)slots[i + 7] * pb, 0, 1);
+      ADAPTQ_PREFETCH(kb + (size_t)slots[i + 4] * pb);
+      ADAPTQ_PREFETCH(kb + (size_t)slots[i + 5] * pb);
+      ADAPTQ_PREFETCH(kb + (size_t)slots[i + 6] * pb);
+      ADAPTQ_PREFETCH(kb + (size_t)slots[i + 7] * pb);
     }
-    __builtin_prefetch(vb + (size_t)s0 * pb, 0, 1);
-    __builtin_prefetch(vb + (size_t)s1 * pb, 0, 1);
-    __builtin_prefetch(vb + (size_t)s2 * pb, 0, 1);
-    __builtin_prefetch(vb + (size_t)s3 * pb, 0, 1);
+    ADAPTQ_PREFETCH(vb + (size_t)s0 * pb);
+    ADAPTQ_PREFETCH(vb + (size_t)s1 * pb);
+    ADAPTQ_PREFETCH(vb + (size_t)s2 * pb);
+    ADAPTQ_PREFETCH(vb + (size_t)s3 * pb);
 
     float d[4];
     kdot4_quad<BITS>(qr, kb + (size_t)s0 * pb, kb + (size_t)s1 * pb,
@@ -331,7 +339,7 @@ static void compute_avx2(const float *qr, float *acc, const float *cb,
   }
   for (; i < n; ++i) {
     int s = slots[i];
-    __builtin_prefetch(vb + (size_t)s * pb, 0, 1);
+    ADAPTQ_PREFETCH(vb + (size_t)s * pb);
     logits[i] = kdot1<BITS>(qr, kb + (size_t)s * pb, cl, ch, padded) * attn_s *
                 kscale[s];
     if (logits[i] > mx)
@@ -468,9 +476,7 @@ int AttentionHead::compute(const float *q, float *out) const {
   for (int i = 0; i < n; ++i)
     slots[i] = (kv_buf.head - n + cap + i) % cap;
 
-#ifdef __AVX2__
 
-#endif
 
   // inside compute():
 #ifdef __AVX2__
@@ -504,8 +510,8 @@ int AttentionHead::compute(const float *q, float *out) const {
     int s = slots[i];
     if (i + 4 < n) {
       int ps = slots[i + 4];
-      __builtin_prefetch(kb + (size_t)ps * pb, 0, 1);
-      __builtin_prefetch(vb + (size_t)ps * pb, 0, 1);
+      ADAPTQ_PREFETCH(kb + (size_t)ps * pb);
+      ADAPTQ_PREFETCH(vb + (size_t)ps * pb);
     }
     logits[i] = kdot_scalar(qr, kb + (size_t)s * pb, cb, pb, bits) * attn_s *
                 kv_buf.k_scale[s];
