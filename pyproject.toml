@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "adaptq"
 version = "0.2.1"
 authors = [
-  { name="Lakshmikanthan K (letchupkt)", email="letchupkt.dev@gmail.com" },
+  { name="Lakshmikanthan K (letchupkt)", email="letchu.geek@gmail.com" },
 ]
 description = "Adaptive Streaming Vector Quantization KV Cache for LLMs — with Replay + Compare + Multi-Backend Integration (V2.1)"
 readme = "README.md"
