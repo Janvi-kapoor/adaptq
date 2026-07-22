@@ -4,16 +4,39 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adaptq"
-version = "0.1.0"
+version = "0.2.0"
 authors = [
   { name="Lakshmikanthan K (letchupkt)", email="letchupkt.dev@gmail.com" },
 ]
-description = "Adaptive Streaming Vector Quantization KV Cache for LLMs"
+description = "Adaptive Streaming Vector Quantization KV Cache for LLMs — with Replay + Compare (V2)"
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+keywords = ["llm", "kv-cache", "quantization", "attention", "inference"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS",
+]
 dependencies = [
     "numpy",
 ]
 
+[project.optional-dependencies]
+torch = ["torch>=2.0"]
+dev   = ["pytest", "numpy", "torch>=2.0"]
+
 [project.urls]
-"Homepage" = "https://github.com/l3tchupkt/adaptq"
+"Homepage"    = "https://github.com/l3tchupkt/adaptq"
+"Bug Tracker" = "https://github.com/l3tchupkt/adaptq/issues"
+"Changelog"   = "https://github.com/l3tchupkt/adaptq/blob/main/CHANGELOG.md"

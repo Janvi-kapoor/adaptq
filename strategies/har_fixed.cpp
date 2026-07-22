@@ -1,11 +1,11 @@
-#include "../../include/adaptq/strategy.h"
-#include "../../include/adaptq/context.h"
-#include "../../include/adaptq/storage.h"
-#include "../../include/adaptq/config.h"
-#include "../../include/adaptq/quality.h"
-#include "../../include/codebook.h"
-#include "../../include/fwht.h"
-#include "../../include/quantizer.h"
+#include <adaptq/strategy.h>
+#include <adaptq/context.h>
+#include <adaptq/storage.h>
+#include <adaptq/config.h>
+#include <adaptq/quality.h>
+#include <codebook.h>
+#include <fwht.h>
+#include <quantizer.h>
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -14,6 +14,7 @@
 #include <ostream>
 #include <istream>
 #include <vector>
+
 
 /* -------------------------------------------------------------------------
  * strategies/har_fixed.cpp — HARFixedStrategy : IKVStrategy

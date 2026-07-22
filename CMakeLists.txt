@@ -26,9 +26,12 @@ set(CORE_SOURCES
     core/quantizer.cpp
     core/adaptq_c_api.cpp
     core/adaptq_backend_vtable.cpp
+    core/cost_optimizer.cpp
+    core/quality_oracle.cpp
     cache/ring_buffer.cpp
     attention/attention.cpp
     utils/timer.cpp
+    kernels/scalar/kdot_scalar.cpp
 )
 
 add_library(adapTQ_core STATIC ${CORE_SOURCES})
@@ -47,11 +50,53 @@ if(UNIX AND NOT APPLE)
 endif()
 
 # ---------------------------------------------------------------------------
+# Runtime library (V2: RuntimeContext + SessionSnapshot + ReplayEngine)
+# ---------------------------------------------------------------------------
+# Strategy/storage/kernel implementations are #included directly in
+# runtime_context.cpp as a single TU to avoid ODR issues — do NOT list them
+# as separate RUNTIME_SOURCES.
+set(RUNTIME_SOURCES
+    runtime/runtime_context.cpp
+    replay/session_snapshot.cpp
+    replay/replay_engine.cpp
+    cli/cmd_replay.cpp
+    cli/cmd_compare.cpp
+    cli/cmd_create_strategy.cpp
+)
+
+add_library(adapTQ_runtime STATIC ${RUNTIME_SOURCES})
+target_include_directories(adapTQ_runtime PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/storage
+    ${CMAKE_CURRENT_SOURCE_DIR}/strategies
+    ${CMAKE_CURRENT_SOURCE_DIR}/kernels
+    ${CMAKE_CURRENT_SOURCE_DIR}/runtime
+    ${CMAKE_CURRENT_SOURCE_DIR}/replay
+    ${CMAKE_CURRENT_SOURCE_DIR}/cli
+)
+target_link_libraries(adapTQ_runtime PUBLIC adapTQ_core)
+
+if(MSVC)
+  target_compile_options(adapTQ_runtime PRIVATE /arch:AVX2)
+else()
+  target_compile_options(adapTQ_runtime PRIVATE -mavx2 -mfma)
+endif()
+
+# ---------------------------------------------------------------------------
 # Main demo executable
 # ---------------------------------------------------------------------------
+
 add_executable(adapTQ_demo main.cpp)
-target_link_libraries(adapTQ_demo PRIVATE adapTQ_core)
-target_include_directories(adapTQ_demo PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(adapTQ_demo PRIVATE adapTQ_runtime adapTQ_core)
+target_include_directories(adapTQ_demo PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/runtime
+    ${CMAKE_CURRENT_SOURCE_DIR}/replay
+    ${CMAKE_CURRENT_SOURCE_DIR}/cli
+    ${CMAKE_CURRENT_SOURCE_DIR}/storage
+    ${CMAKE_CURRENT_SOURCE_DIR}/strategies
+    ${CMAKE_CURRENT_SOURCE_DIR}/kernels
+)
 
 # ---------------------------------------------------------------------------
 # Tests — Catch2 via find_package first, then FetchContent fallback
@@ -124,5 +169,45 @@ if(ADAPTQ_BUILD_TESTS)
   endif()
   catch_discover_tests(test_conformance)
 
-  message(STATUS "Test targets enabled")
+  # --- test_runtime_context -----------------------------------------------
+  # RuntimeContext #includes strategy/kernel implementations internally.
+  add_executable(test_runtime_context
+      tests/unit/test_runtime_context.cpp)
+  target_include_directories(test_runtime_context PRIVATE
+      include storage strategies kernels runtime replay)
+  target_link_libraries(test_runtime_context PRIVATE adapTQ_runtime adapTQ_core Catch2::Catch2WithMain)
+  if(NOT MSVC)
+    target_compile_options(test_runtime_context PRIVATE -mavx2 -mfma)
+  else()
+    target_compile_options(test_runtime_context PRIVATE /arch:AVX2)
+  endif()
+  catch_discover_tests(test_runtime_context)
+
+  # --- test_session_snapshot -----------------------------------------------
+  add_executable(test_session_snapshot
+      tests/unit/test_session_snapshot.cpp)
+  target_include_directories(test_session_snapshot PRIVATE
+      include storage strategies kernels runtime replay)
+  target_link_libraries(test_session_snapshot PRIVATE adapTQ_runtime adapTQ_core Catch2::Catch2WithMain)
+  if(NOT MSVC)
+    target_compile_options(test_session_snapshot PRIVATE -mavx2 -mfma)
+  else()
+    target_compile_options(test_session_snapshot PRIVATE /arch:AVX2)
+  endif()
+  catch_discover_tests(test_session_snapshot)
+
+  # --- test_replay_engine --------------------------------------------------
+  add_executable(test_replay_engine
+      tests/unit/test_replay_engine.cpp)
+  target_include_directories(test_replay_engine PRIVATE
+      include storage strategies kernels runtime replay)
+  target_link_libraries(test_replay_engine PRIVATE adapTQ_runtime adapTQ_core Catch2::Catch2WithMain)
+  if(NOT MSVC)
+    target_compile_options(test_replay_engine PRIVATE -mavx2 -mfma)
+  else()
+    target_compile_options(test_replay_engine PRIVATE /arch:AVX2)
+  endif()
+  catch_discover_tests(test_replay_engine)
+
+  message(STATUS "Test targets enabled (V1: 38 tests + V2: runtime/snapshot/replay)")
 endif()

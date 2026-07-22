@@ -8,3 +8,7 @@ __pycache__/
 adapters/*.so
 adapters/standalone_test
 build_py.sh
+build/
+build_v2/
+*.egg-info/
+*.aqss
