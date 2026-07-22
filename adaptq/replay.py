@@ -19,6 +19,13 @@ import tempfile
 from pathlib import Path
 from typing import List, Optional, Union
 
+__all__ = [
+    "ReplayEngine",
+    "ReplayResult",
+    "CompareResult",
+    "snapshot_info",
+]
+
 
 # ---------------------------------------------------------------------------
 # Locate the adaptq CLI binary
@@ -29,8 +36,9 @@ def _find_binary() -> Optional[str]:
     # 1. Check alongside this package (editable installs)
     pkg_dir = Path(__file__).parent.parent
     candidates = [
-        pkg_dir / "build_v2" / "adapTQ_demo",
+        pkg_dir / "build_release" / "adapTQ_demo",
         pkg_dir / "build" / "adapTQ_demo",
+        pkg_dir / "build_v2" / "adapTQ_demo",   # legacy fallback
         pkg_dir / "adapTQ_demo",
     ]
     for p in candidates:
@@ -53,7 +61,8 @@ def _get_binary() -> str:
         raise RuntimeError(
             "adaptq CLI binary not found. "
             "Build the project first:\n"
-            "  cmake --build build_v2 --parallel\n"
+            "  cmake -B build_release -S . -DCMAKE_BUILD_TYPE=Release\n"
+            "  cmake --build build_release --parallel\n"
             "Or install from source:\n"
             "  pip install ."
         )
@@ -211,13 +220,13 @@ class ReplayEngine:
             cmd += ["--from-token", str(from_token)]
         if collect_metrics:
             cmd.append("--metrics")
-        if output_format != "json":
-            cmd += ["--format", output_format]
+        # Note: output_format used only if output_path specified; internal capture always uses json
 
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as tmp:
             tmp_path = tmp.name
 
         try:
+            # Always capture JSON internally; write to user path separately if requested
             cmd += ["--format", "json", "--output", tmp_path]
             result = subprocess.run(
                 cmd, capture_output=True, text=True

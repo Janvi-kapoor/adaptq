@@ -1,14 +1,59 @@
+# Build artifacts
 *.o
+*.a
 *.so
+*.dll
+*.dylib
+*.pyd
 adapTQ_demo
 standalone_test
-adaptq_realtime_bench.png
+build_py.sh
+
+# Build directories
+build/
+build_*/
+dist/
+
+# Python packaging
+*.egg-info/
 __pycache__/
-*.so
+*.pyc
+*.pyo
+.eggs/
+*.whl
+
+# Virtual environments
+test_env/
+venv/
+.venv/
+env/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+
+# Adapters (compiled)
 adapters/*.so
 adapters/standalone_test
-build_py.sh
-build/
-build_v2/
-*.egg-info/
-*.aqss
+adapters/libadaptq_llamacpp.so
+
+# Validation artifacts
+benchmarks/results/*.json
+benchmarks/results/*.csv
+benchmarks/results/*.md
+
+# Test cache
+.pytest_cache/
+
+# Debug/temp
+*.log
+_ctypes_test.py
+_xval_test.py
+audit_phase*.py
+
+# Images (generated)
+adaptq_realtime_bench.png
+plots/

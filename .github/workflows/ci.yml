@@ -54,12 +54,12 @@ jobs:
               -lm
         working-directory: adapTQ
 
-      - name: Python validation suite
-        run: python3 tests/run_tests.py
+      - name: Python accuracy + benchmark
+        run: |
+          python3 tests/test_accuracy.py
+          python3 tests/run_tests.py --stage 2
+          python3 tests/run_tests.py --stage 3
         working-directory: adapTQ
-        env:
-          # Tell run_tests.py it's running natively (not via WSL subprocess)
-          ADAPTQ_NATIVE_LINUX: "1"
 
   # ─────────────────────────────────────────────────────────────────────────
   # Job 2: Windows (MSVC 2022 / Ninja / AVX2)
@@ -130,6 +130,8 @@ jobs:
         working-directory: adapTQ
         continue-on-error: true   # pybind11 extension may not build on CI runner
 
-      - name: Run pure-Python benchmark (no C extension needed)
-        run: python python/benchmark.py
+      - name: Run Python accuracy + benchmark (no C extension needed)
+        run: |
+          python3 tests/test_accuracy.py
+          python3 python/benchmark.py
         working-directory: adapTQ

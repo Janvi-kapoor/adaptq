@@ -65,8 +65,8 @@ pip install .
 ### 🔹 Build C++ CLI (for replay/compare commands)
 
 ```bash
-cmake -B build_v2 -S . -DCMAKE_BUILD_TYPE=Release
-cmake --build build_v2 --parallel
+cmake -B build_release -S . -DCMAKE_BUILD_TYPE=Release
+cmake --build build_release --parallel
 ```
 
 ---
@@ -79,11 +79,14 @@ cmake --build build_v2 --parallel
 import numpy as np
 from adaptq import Engine
 
+# Engine wraps MHAContext for multi-head attention
 engine = Engine(dim=128, heads=4, bits=4, capacity=2048)
-k, v, q = np.random.randn(4, 128), np.random.randn(4, 128), np.random.randn(4, 128)
+k = np.random.randn(4, 128).astype('float32')  # [heads, dim]
+v = np.random.randn(4, 128).astype('float32')
+q = np.random.randn(4, 128).astype('float32')
 
-engine.append(k, v)
-output = engine.compute(q)
+engine.append(k, v)           # feed token into AdapTQ
+output = engine.compute(q)    # compressed attention output
 ```
 
 ### V2 — Replay + Compare
@@ -133,15 +136,15 @@ The C++ `adapTQ_demo` binary exposes three subcommands:
 
 ```bash
 # Replay a session snapshot
-./build_v2/adapTQ_demo replay session.aqss --metrics --format md
+./build_release/adapTQ_demo replay session.aqss --metrics --format md
 
 # Compare two strategies on the same snapshot
-./build_v2/adapTQ_demo compare session.aqss \
+./build_release/adapTQ_demo compare session.aqss \
   --strategies har_fixed,fp_passthrough \
   --format csv --output comparison.csv
 
 # Scaffold a new IKVStrategy implementation
-./build_v2/adapTQ_demo create-strategy MyKV2027
+./build_release/adapTQ_demo create-strategy MyKV2027
 ```
 
 **Output formats:** `json` (default), `csv`, `md` (Markdown), `tex` (LaTeX).
@@ -182,7 +185,7 @@ AdapTQ V1 provides six stable plugin interfaces:
 Scaffold a new strategy in seconds:
 
 ```bash
-./build_v2/adapTQ_demo create-strategy MyKV2027
+./build_release/adapTQ_demo create-strategy MyKV2027
 # Creates strategies/mykv2027/strategy.cpp with full template
 ```
 
@@ -206,10 +209,16 @@ adapter.attention(head, query_array, out_array);
 
 ```bash
 # C++ — 67 tests (V1: 38, V2: 29)
-cd build_v2 && ctest --output-on-failure -j4
+cmake -B build_release -S . -DCMAKE_BUILD_TYPE=Release
+cmake --build build_release --parallel
+cd build_release && ctest --output-on-failure -j4
 
-# Python validation (5/5 stages)
-cd tests && python run_tests.py
+# Python accuracy validation (run from repo root)
+python3 tests/test_accuracy.py
+
+# Full Python validation suite (run from Windows PowerShell — calls WSL internally)
+# python tests\run_tests.py          # Windows
+# python3 tests/run_tests.py --stage 2  # Linux: pure-Python stages only
 ```
 
 ## 📝 Changelog

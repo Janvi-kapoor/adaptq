@@ -5,7 +5,73 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [0.2.1] — 2026-07-22 — V2.1: Real Runtime Integration & Validation
+
+### Added
+
+#### Python — Multi-Backend Adapter Layer
+- **`adaptq/runtime_py/`** — `IRuntimeAdapter` Python ABC + backend registry
+  - `create_adapter(backend)` factory for all supported backends
+  - `backend_available(backend)` / `list_available_backends()` discovery helpers
+- **`adaptq/runtime_py/backends/transformers_hf.py`** — HuggingFace Transformers adapter (Priority 1)
+  - Hooks into `DynamicCache.update()` to intercept K/V per layer
+  - Supports any CausalLM: Qwen, LLaMA, Mistral, Gemma, GPT-2, …
+  - CPU and GPU; auto-detects device
+- **`adaptq/runtime_py/backends/llama_cpp_python.py`** — llama-cpp-python adapter (Priority 1)
+  - Hooks into `Llama.eval()` + `Llama.sample()` token loop
+  - Full generate() pipeline with save/restore llama context state
+  - KV stats via size estimation (approximate)
+- **`adaptq/runtime_py/backends/ollama.py`** — Ollama REST adapter (Priority 2)
+  - POST /api/generate with streaming JSON
+  - No internal KV access; captures timing and token counts
+- **`adaptq/runtime_py/backends/vllm.py`** — vLLM stub (Priority 3, CUDA required)
+- **`adaptq/runtime_py/backends/mlx.py`** — MLX stub (Priority 5, Apple Silicon)
+- **`adaptq/runtime_py/backends/llama_cpp.py`** — llama.cpp C++ stub (Priority 6, source build)
+
+#### C++ — IRuntimeAdapter Interface
+- **`runtime/adapters/adapter.h`** — `IRuntimeAdapter` pure C++ interface (9 virtual methods)
+- **`runtime/adapters/runtime_metadata.h`** — `ModelConfig`, `SessionConfig`, `KVCacheView`, `RuntimeMetadata`, `GenerationResult`
+
+#### Examples (6 demos)
+- `examples/transformers_demo.py` — full Transformers pipeline demo
+- `examples/llama_demo.py` — full llama-cpp-python pipeline + context save/restore
+- `examples/ollama_demo.py` — Ollama REST generation demo
+- `examples/snapshot_demo.py` — standalone snapshot pipeline (no model required)
+- `examples/branch_replay_demo.py` — branch replay at midpoint
+- `examples/compare_backends.py` — cross-backend comparison table
+
+#### Benchmarks
+- `benchmarks/bench_all.py` — unified benchmark runner (KV memory, latency, snapshot size)
+- Output formats: JSON, CSV, Markdown
+
+#### Integration Tests
+- `integration_tests/conftest.py` — shared fixtures, markers, `--model-hf`, `--model-gguf` CLI args
+- `integration_tests/test_adapter_contract.py` — 25 backend-agnostic contract tests
+- `integration_tests/test_transformers.py` — 15 end-to-end transformers tests
+- `integration_tests/test_llama_cpp_python.py` — 10 end-to-end llama-cpp-python tests
+
+#### CI
+- `.github/workflows/integration.yml` — 4-job CI: C++ tests, adapter contracts, transformers integration, Python validation
+
+#### Documentation
+- `docs/v2.1_integration.md` — backend integration guide + "how to add a new backend"
+
+### Changed
+- `adaptq/__init__.py` — exports `create_adapter()`, `list_available_backends()`
+- `pyproject.toml` — version `0.2.1`; optional deps for each backend
+- `pyproject.toml` — `[tool.pytest.ini_options]` now covers `integration_tests/`
+- `CLAUDE.md` — V2.1 architecture notes
+
+### Test Results (V2.1)
+- **C++**: 67/67 tests pass (unchanged)
+- **Integration contract**: 25/25 pass (no model required)
+- **Transformers integration**: 15/15 pass (Qwen2-0.5B, CPU, 167s)
+- **Backends available**: `transformers`, `llama_cpp_python`, `ollama`
+
+---
+
 ## [0.2.0] — 2026-07-22 — V2: Replay + Compare
+
 
 ### Added
 
