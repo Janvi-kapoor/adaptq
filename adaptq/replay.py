@@ -35,11 +35,15 @@ def _find_binary() -> Optional[str]:
     """Find the adaptq CLI binary (build_v2/adapTQ_demo or system path)."""
     # 1. Check alongside this package (editable installs)
     pkg_dir = Path(__file__).parent.parent
+    import sys
+    exe_suffix = ".exe" if sys.platform == "win32" else ""
+    binary_name = f"adapTQ_demo{exe_suffix}"
+    
     candidates = [
-        pkg_dir / "build_release" / "adapTQ_demo",
-        pkg_dir / "build" / "adapTQ_demo",
-        pkg_dir / "build_v2" / "adapTQ_demo",   # legacy fallback
-        pkg_dir / "adapTQ_demo",
+        pkg_dir / "build_release" / binary_name,
+        pkg_dir / "build" / binary_name,
+        pkg_dir / "build_v2" / binary_name,   # legacy fallback
+        pkg_dir / binary_name,
     ]
     for p in candidates:
         if p.exists():

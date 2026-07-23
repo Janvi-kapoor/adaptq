@@ -62,6 +62,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `pyproject.toml` — `[tool.pytest.ini_options]` now covers `integration_tests/`
 - `CLAUDE.md` — V2.1 architecture notes
 
+### Fixed (Pre-Release Audit)
+- **CRITICAL**: Fixed `SyntaxError` in `adaptq/__init__.py` (duplicate docstring) that prevented the package from being imported.
+- Fixed `adaptq/__init__.py` missing `__version__`.
+- Fixed `adaptq/replay.py` stale binary path (`build_v2` → `build_release`), duplicate `--format` flag, and namespace pollution.
+- Fixed `adaptq/runtime_py/backends/transformers_hf.py` `torch_dtype` deprecation warning (changed to `dtype`).
+- Expanded `.gitignore` to cover all build directories (`build_release`, `build_debug`, etc.).
+- Made `validate_*.sh`, `replay.py`, and `run_tests.py` fully cross-platform (removed hardcoded WSL paths).
+
 ### Test Results (V2.1)
 - **C++**: 67/67 tests pass (unchanged)
 - **Integration contract**: 25/25 pass (no model required)

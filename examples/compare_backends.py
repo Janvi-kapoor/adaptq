@@ -28,7 +28,6 @@ sys.path.insert(0, str(ROOT))
 from adaptq.runtime_py import (
     create_adapter,
     list_available_backends,
-    IRuntimeAdapter,
 )
 from adaptq.runtime_py.metadata import GenerationResult, ModelConfig
 
@@ -79,7 +78,7 @@ def run_backend(
         if not adapter.load_model(cfg):
             print(f" ✗ load_model failed: {adapter.last_error()}")
             return None
-        print(f" ✓  Generating …", end="", flush=True)
+        print(" ✓  Generating …", end="", flush=True)
 
         t0 = time.perf_counter()
         result = adapter.generate(prompt, max_new_tokens=max_tokens)

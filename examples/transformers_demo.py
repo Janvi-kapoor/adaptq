@@ -95,7 +95,7 @@ def run_demo(model_path: str, max_tokens: int, prompt: str, snapshot_at: int):
     print()  # clear progress line
 
     print(f"\n  Generated text:\n  {result.text!r}")
-    print(f"\n  Stats:")
+    print("\n  Stats:")
     print(f"    Tokens generated : {result.n_generated_tokens}")
     print(f"    Prompt tokens    : {result.n_prompt_tokens}")
     print(f"    Wall time        : {result.wall_time_ms:.0f} ms")
@@ -103,13 +103,13 @@ def run_demo(model_path: str, max_tokens: int, prompt: str, snapshot_at: int):
 
     kv = result.kv_stats
     if kv.kv_bytes_fp16 > 0:
-        print(f"\n  KV Cache (AdapTQ):")
+        print("\n  KV Cache (AdapTQ):")
         print(f"    Compressed       : {kv.kv_bytes_adaptq/1024:.1f} KB")
         print(f"    FP16 equivalent  : {kv.kv_bytes_fp16/1024:.1f} KB")
         print(f"    Compression ratio: {kv.compression_ratio:.1f}x")
     else:
-        print(f"\n  (KV stats: adaptq_py extension not installed — "
-              f"install with: cd adapTQ && pip install .)")
+        print("\n  (KV stats: adaptq_py extension not installed — "
+              "install with: cd adapTQ && pip install .)")
 
     # ── 4. Snapshot capture (with second generate call) ───────────────────
     section("4. Snapshot capture + restore + continue")
@@ -144,7 +144,7 @@ def run_demo(model_path: str, max_tokens: int, prompt: str, snapshot_at: int):
     print(f"  KV at snapshot: {kv_stats_snap.kv_bytes_adaptq/1024:.1f} KB compressed")
 
     # Show that we can re-run and continue
-    print(f"\n  Resuming from snapshot (simulated replay) …")
+    print("\n  Resuming from snapshot (simulated replay) …")
     session_cfg2 = SessionConfig(
         prompt=prompt,
         max_new_tokens=max_tokens,

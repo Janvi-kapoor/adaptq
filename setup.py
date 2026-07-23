@@ -1,4 +1,3 @@
-import os
 from setuptools import setup, Extension, find_packages
 import pybind11
 

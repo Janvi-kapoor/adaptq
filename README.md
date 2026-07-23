@@ -216,9 +216,8 @@ cd build_release && ctest --output-on-failure -j4
 # Python accuracy validation (run from repo root)
 python3 tests/test_accuracy.py
 
-# Full Python validation suite (run from Windows PowerShell — calls WSL internally)
-# python tests\run_tests.py          # Windows
-# python3 tests/run_tests.py --stage 2  # Linux: pure-Python stages only
+# Full Python validation suite
+python3 tests/run_tests.py
 ```
 
 ## 📝 Changelog

@@ -1,7 +1,6 @@
 import torch
 import numpy as np
-import sys
-from adaptq import AdaptQAttention, Engine
+from adaptq import AdaptQAttention
 
 # Ensure tests fail actively if thresholds surpassed
 THRESHOLD_MSE_MAX = 5e-3
@@ -78,7 +77,7 @@ def run_accuracy_test():
     avg_cos = np.mean(cosines[256:]) if seq_len > 256 else np.mean(cosines)
 
     print(f"Tested 1 -> {seq_len} tokens.")
-    print(f"Metrics (Stable region > 256):")
+    print("Metrics (Stable region > 256):")
     print(f"  Avg MSE       : {avg_mse:.3e}")
     print(f"  Avg Cosine    : {avg_cos:.4f}")
     

@@ -14,7 +14,6 @@ except ImportError:
     Engine = None   # type: ignore[assignment,misc]
     _ENGINE_AVAILABLE = False
 
-import numpy as np
 
 
 if _TORCH_AVAILABLE and _ENGINE_AVAILABLE:

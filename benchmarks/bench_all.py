@@ -25,7 +25,7 @@ import json
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -136,8 +136,6 @@ def bench_latency(backend: str, model_path: str, prompt: str,
 def bench_snapshot(n_tokens_list: List[int] = None,
                    dim: int = 128, bits: int = 4) -> List[Dict[str, Any]]:
     """Measure snapshot save/load time and file size for various token counts."""
-    import tempfile
-    import os
 
     if n_tokens_list is None:
         n_tokens_list = [32, 64, 128, 256, 512]
@@ -147,6 +145,7 @@ def bench_snapshot(n_tokens_list: List[int] = None,
     # Use the CLI for snapshot operations (C++ binary)
     cli = next(
         (str(p) for p in [
+            ROOT / "build_release" / "adapTQ_demo",
             ROOT / "build_v2" / "adapTQ_demo",
             ROOT / "build" / "adapTQ_demo",
         ] if p.exists()),

@@ -148,7 +148,7 @@ def run_demo(n_tokens: int, dim: int, bits: int, n_layers: int, n_heads: int):
         print("    snap = SessionSnapshot.capture(ctx, include_token_log=True)")
         print("    snap.save('session.aqss')")
         print("    loaded = SessionSnapshot.load('session.aqss')")
-        print(f"    # loaded.n_tokens()  → number of tokens captured")
+        print("    # loaded.n_tokens()  → number of tokens captured")
 
     finally:
         if os.path.exists(snap_path):

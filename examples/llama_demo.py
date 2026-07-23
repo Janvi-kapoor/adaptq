@@ -85,7 +85,7 @@ def resolve_model(model_path: str, auto_download: bool) -> str:
     print(f"    2. Specify path: python {__file__} --model /path/to/model.gguf")
     print()
     print("  Manual download:")
-    print(f"    pip install huggingface-hub")
+    print("    pip install huggingface-hub")
     print(f"    huggingface-cli download {TINYLLAMA_REPO} {TINYLLAMA_FILE}")
     sys.exit(1)
 
@@ -157,7 +157,7 @@ def run_demo(model_path: str, max_tokens: int, prompt: str, auto_download: bool)
     print()
 
     print(f"\n  Generated text:\n  {result.text!r}")
-    print(f"\n  Performance:")
+    print("\n  Performance:")
     print(f"    Tokens generated : {result.n_generated_tokens}")
     print(f"    Prompt tokens    : {result.n_prompt_tokens}")
     print(f"    Wall time        : {result.wall_time_ms:.0f} ms")
@@ -192,7 +192,7 @@ def run_demo(model_path: str, max_tokens: int, prompt: str, auto_download: bool)
         print(f"  ✓ State saved: {state_mb:.1f} MB")
 
         # Restore and continue
-        print(f"  Restoring state and continuing generation …")
+        print("  Restoring state and continuing generation …")
         adapter.begin_session(SessionConfig(prompt=prompt, max_new_tokens=20))
         ok_load = adapter.load_llama_state(state_path)
         if ok_load:
@@ -207,8 +207,8 @@ def run_demo(model_path: str, max_tokens: int, prompt: str, auto_download: bool)
         else:
             print(f"  ✗ State restore failed: {adapter.last_error()}")
     else:
-        print(f"  (state save not supported in this version — "
-              f"use SessionSnapshot instead)")
+        print("  (state save not supported in this version — "
+              "use SessionSnapshot instead)")
 
     # ── Summary ───────────────────────────────────────────────────────────
     section("6. Summary")

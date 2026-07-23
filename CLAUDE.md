@@ -219,18 +219,17 @@ Effect:
 ## Build
 
 ```bash
-# V2 build (recommended)
-cd /mnt/e/Researches/AdaptQ/adapTQ
-cmake -B build_v2 -S . -DCMAKE_BUILD_TYPE=Release
-cmake --build build_v2 --parallel 4
+# V2.1 build (Linux / WSL / Windows with MSVC)
+cmake -B build_release -S . -DCMAKE_BUILD_TYPE=Release
+cmake --build build_release --parallel 4
 
 # Run all tests (67 total)
-cd build_v2 && ctest --output-on-failure -j4
+cd build_release && ctest --output-on-failure -j4
 
 # Run the CLI demo
-./build_v2/adapTQ_demo --help
-./build_v2/adapTQ_demo replay session.aqss --metrics
-./build_v2/adapTQ_demo compare session.aqss --strategies har_fixed,fp_passthrough
+./build_release/adapTQ_demo --help
+./build_release/adapTQ_demo replay session.aqss --metrics
+./build_release/adapTQ_demo compare session.aqss --strategies har_fixed,fp_passthrough
 ```
 
 ---

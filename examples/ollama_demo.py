@@ -19,13 +19,12 @@ from __future__ import annotations
 
 import argparse
 import sys
-import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from adaptq.runtime_py import create_adapter, backend_available
+from adaptq.runtime_py import create_adapter
 from adaptq.runtime_py.metadata import ModelConfig
 
 BANNER = """
@@ -85,7 +84,7 @@ def run_demo(model: str, max_tokens: int, prompt: str, base_url: str):
 
     meta = adapter.metadata()
     print(f"  ✓ Connected to model: {meta.model_name!r}")
-    print(f"  Note: Ollama adapter uses REST API — no direct KV access")
+    print("  Note: Ollama adapter uses REST API — no direct KV access")
     print(f"  kv_access = {meta.kv_access}")
 
     section("3. Generating via REST API")
@@ -99,10 +98,10 @@ def run_demo(model: str, max_tokens: int, prompt: str, base_url: str):
         print(f"  ✗ Generation failed: {result.error}")
         sys.exit(1)
 
-    print(f"  Generated text:")
+    print("  Generated text:")
     print(f"  {result.text!r}")
     print()
-    print(f"  Stats:")
+    print("  Stats:")
     print(f"    Tokens: {result.n_generated_tokens} generated, "
           f"{result.n_prompt_tokens} prompt")
     print(f"    Time  : {result.wall_time_ms:.0f} ms")

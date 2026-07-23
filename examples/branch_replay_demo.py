@@ -23,7 +23,6 @@ from __future__ import annotations
 
 import subprocess
 import sys
-import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -110,7 +109,6 @@ def run_demo():
     if engine is not None:
         print(f"  ✓ {N_TOKENS} tokens simulated")
         print(f"  KV size: {engine.kv_bytes / 1024:.1f} KB (compressed)")
-        import numpy as np
         fp16 = N_TOKENS * N_HEADS * DIM * 2 * 2
         print(f"  FP16 equivalent: {fp16 / 1024:.1f} KB")
         print(f"  Compression: {fp16 / max(engine.kv_bytes, 1):.1f}x")
@@ -140,13 +138,13 @@ def run_demo():
 
     print("  To branch an existing snapshot at token 20:")
     print()
-    print(f"    $ adaptq replay session.aqss --from-token 20")
+    print("    $ adaptq replay session.aqss --from-token 20")
     print()
     print("  To compare two strategies branching from the same point:")
     print()
-    print(f"    $ adaptq compare session.aqss \\")
-    print(f"        --strategies har_fixed,fp_passthrough \\")
-    print(f"        --format md")
+    print("    $ adaptq compare session.aqss \\")
+    print("        --strategies har_fixed,fp_passthrough \\")
+    print("        --format md")
     print()
 
     if cli:
@@ -196,7 +194,7 @@ def run_demo():
     print("  ┌──────────────────────┬──────────────────────────────────┐")
     print("  │ Branch A (har_fixed) │ Branch B (fp_passthrough)        │")
     print("  ├──────────────────────┼──────────────────────────────────┤")
-    print(f"  │ KV: 4-bit compressed │ KV: FP32 (no compression)        │")
+    print("  │ KV: 4-bit compressed │ KV: FP32 (no compression)        │")
     print(f"  │ ~{N_TOKENS * N_HEADS * DIM * 2 * 4 // 8 // 1024:.0f} KB            "
           f"│ ~{N_TOKENS * N_HEADS * DIM * 2 * 4 // 1024:.0f} KB                           │")
     print("  │ Tokens: 20 more      │ Tokens: 20 more                  │")

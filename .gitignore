@@ -1,59 +1,44 @@
-# Build artifacts
+# ---------------------------------------------------------------------------
+# C++ Build Artifacts
+# ---------------------------------------------------------------------------
+build*/
+out*/
 *.o
-*.a
+*.obj
 *.so
 *.dll
 *.dylib
-*.pyd
+*.a
+*.lib
+*.exp
+*.pdb
+*.exe
 adapTQ_demo
-standalone_test
-build_py.sh
 
-# Build directories
-build/
-build_*/
-dist/
-
-# Python packaging
-*.egg-info/
+# ---------------------------------------------------------------------------
+# Python Artifacts & Caches
+# ---------------------------------------------------------------------------
 __pycache__/
 *.pyc
 *.pyo
-.eggs/
-*.whl
-
-# Virtual environments
+*.pyd
+*.egg-info/
+dist/
 test_env/
-venv/
 .venv/
-env/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
 
-# IDE / editor
+# ---------------------------------------------------------------------------
+# IDEs and OS Files
+# ---------------------------------------------------------------------------
 .vscode/
 .idea/
+.DS_Store
+Thumbs.db
 *.swp
-*.swo
 *.bak
-
-# Adapters (compiled)
-adapters/*.so
-adapters/standalone_test
-adapters/libadaptq_llamacpp.so
-
-# Validation artifacts
-benchmarks/results/*.json
-benchmarks/results/*.csv
-benchmarks/results/*.md
-
-# Test cache
-.pytest_cache/
-
-# Debug/temp
-*.log
-_ctypes_test.py
-_xval_test.py
-audit_phase*.py
-
-# Images (generated)
-adaptq_realtime_bench.png
-plots/
+*~

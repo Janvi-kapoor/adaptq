@@ -22,8 +22,8 @@ from __future__ import annotations
 
 import pytest
 
-from adaptq.runtime_py import create_adapter, backend_available
-from adaptq.runtime_py.metadata import ModelConfig, SessionConfig
+from adaptq.runtime_py import backend_available
+from adaptq.runtime_py.metadata import SessionConfig
 
 
 pytestmark = pytest.mark.transformers
