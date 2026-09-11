@@ -403,7 +403,8 @@ ComputeMetrics RuntimeContext::compute(int          layer,
 
     /* ---- 5. AttentionFeedback → eviction ------------------------------- */
     {
-        static thread_local int attn_slots[65536];
+        static thread_local std::vector<int> attn_slots;
+        attn_slots.resize(n);
         for (int i = 0; i < n; ++i) attn_slots[i] = i;
         float lat = 0.f;
         if (n > 0) {
@@ -412,7 +413,7 @@ ComputeMetrics RuntimeContext::compute(int          layer,
         }
         AttentionFeedback fb;
         fb.weights    = logits_.data();
-        fb.slots      = attn_slots;
+        fb.slots      = attn_slots.data();
         fb.n          = n;
         fb.latency_us = lat;
         strat->eviction()->on_attention(fb, ctx);
