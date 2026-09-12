@@ -179,11 +179,6 @@ if(ADAPTQ_BUILD_TESTS)
   target_include_directories(test_conformance PRIVATE
       include storage strategies tests/conformance)
   target_link_libraries(test_conformance PRIVATE adapTQ_core Catch2::Catch2WithMain)
-  if(NOT MSVC)
-    target_compile_options(test_conformance PRIVATE -mavx2 -mfma)
-  else()
-    target_compile_options(test_conformance PRIVATE /arch:AVX2)
-  endif()
   catch_discover_tests(test_conformance)
 
   # --- test_runtime_context -----------------------------------------------
@@ -193,11 +188,6 @@ if(ADAPTQ_BUILD_TESTS)
   target_include_directories(test_runtime_context PRIVATE
       include storage strategies kernels runtime replay)
   target_link_libraries(test_runtime_context PRIVATE adapTQ_runtime adapTQ_core Catch2::Catch2WithMain)
-  if(NOT MSVC)
-    target_compile_options(test_runtime_context PRIVATE -mavx2 -mfma)
-  else()
-    target_compile_options(test_runtime_context PRIVATE /arch:AVX2)
-  endif()
   catch_discover_tests(test_runtime_context)
 
   # --- test_session_snapshot -----------------------------------------------
@@ -206,11 +196,6 @@ if(ADAPTQ_BUILD_TESTS)
   target_include_directories(test_session_snapshot PRIVATE
       include storage strategies kernels runtime replay)
   target_link_libraries(test_session_snapshot PRIVATE adapTQ_runtime adapTQ_core Catch2::Catch2WithMain)
-  if(NOT MSVC)
-    target_compile_options(test_session_snapshot PRIVATE -mavx2 -mfma)
-  else()
-    target_compile_options(test_session_snapshot PRIVATE /arch:AVX2)
-  endif()
   catch_discover_tests(test_session_snapshot)
 
   # --- test_replay_engine --------------------------------------------------
@@ -219,11 +204,6 @@ if(ADAPTQ_BUILD_TESTS)
   target_include_directories(test_replay_engine PRIVATE
       include storage strategies kernels runtime replay)
   target_link_libraries(test_replay_engine PRIVATE adapTQ_runtime adapTQ_core Catch2::Catch2WithMain)
-  if(NOT MSVC)
-    target_compile_options(test_replay_engine PRIVATE -mavx2 -mfma)
-  else()
-    target_compile_options(test_replay_engine PRIVATE /arch:AVX2)
-  endif()
   catch_discover_tests(test_replay_engine)
 
   message(STATUS "Test targets enabled (V1: 38 tests + V2: runtime/snapshot/replay)")
