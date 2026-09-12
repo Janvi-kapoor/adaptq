@@ -24,7 +24,6 @@
 #include "../strategies/har_fixed.cpp"
 #include "../strategies/fp_passthrough.cpp"
 /* Pull in kernel backend implementations. */
-#include "../kernels/scalar/kdot_scalar.cpp"
 namespace adaptq {
 
 /* =========================================================================
