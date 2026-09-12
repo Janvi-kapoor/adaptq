@@ -34,15 +34,15 @@ jobs:
                 -G Ninja \
                 -DCMAKE_BUILD_TYPE=Release \
                 -DADAPTQ_BUILD_TESTS=ON
-        working-directory: adapTQ
+        
 
       - name: Build
         run: cmake --build build --parallel
-        working-directory: adapTQ
+        
 
       - name: CTest (unit + conformance)
         run: ctest --output-on-failure --parallel 4
-        working-directory: adapTQ/build
+        working-directory: build
 
       - name: Build shared library for Python tests
         run: |
@@ -52,14 +52,14 @@ jobs:
               core/adaptq_c_api.cpp core/adaptq_backend_vtable.cpp \
               cache/ring_buffer.cpp attention/attention.cpp utils/timer.cpp \
               -lm
-        working-directory: adapTQ
+        
 
       - name: Python accuracy + benchmark
         run: |
           python3 tests/test_accuracy.py
           python3 tests/run_tests.py --stage 2
           python3 tests/run_tests.py --stage 3
-        working-directory: adapTQ
+        
 
   # ─────────────────────────────────────────────────────────────────────────
   # Job 2: Windows (MSVC 2022 / Ninja / AVX2)
@@ -86,28 +86,28 @@ jobs:
                 -DCMAKE_BUILD_TYPE=Release `
                 -DCMAKE_CXX_COMPILER=cl `
                 -DADAPTQ_BUILD_TESTS=ON
-        working-directory: adapTQ
+        
         shell: pwsh
 
       - name: Build
         run: cmake --build build --parallel
-        working-directory: adapTQ
+        
 
       - name: CTest (unit + conformance)
         run: ctest --output-on-failure --parallel 4
-        working-directory: adapTQ/build
+        working-directory: build
 
       - name: Build DLL for Python tests
         run: |
           cmake --build build --target adapTQ_demo
-        working-directory: adapTQ
+        
 
       - name: Python reference tests (stages 2+3)
         # Stages 4+5 require a shared lib; use --stage to run portable stages
         run: |
           python tests\run_tests.py --stage 2
           python tests\run_tests.py --stage 3
-        working-directory: adapTQ
+        
         shell: pwsh
 
   # ─────────────────────────────────────────────────────────────────────────
@@ -127,11 +127,11 @@ jobs:
 
       - name: Install package in editable mode
         run: pip install -e . --no-build-isolation
-        working-directory: adapTQ
+        
         continue-on-error: true   # pybind11 extension may not build on CI runner
 
       - name: Run Python accuracy + benchmark (no C extension needed)
         run: |
           python3 tests/test_accuracy.py
           python3 python/benchmark.py
-        working-directory: adapTQ
+        
