@@ -39,11 +39,27 @@ target_include_directories(adapTQ_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 if(MSVC)
-  target_compile_options(adapTQ_core PRIVATE /openmp /arch:AVX2)
+  target_compile_options(adapTQ_core PRIVATE /openmp)
 else()
-  target_compile_options(adapTQ_core PRIVATE -mavx2 -mfma -fopenmp)
+  target_compile_options(adapTQ_core PRIVATE -fopenmp)
   target_link_options(adapTQ_core PUBLIC -fopenmp)
 endif()
+
+# ---------------------------------------------------------------------------
+# AVX2 kernel backend
+# ---------------------------------------------------------------------------
+add_library(adapTQ_avx2 STATIC
+    kernels/avx2/kdot_avx2.cpp
+)
+target_include_directories(adapTQ_avx2 PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+if(MSVC)
+  target_compile_options(adapTQ_avx2 PRIVATE /arch:AVX2)
+else()
+  target_compile_options(adapTQ_avx2 PRIVATE -mavx2 -mfma)
+endif()
+target_link_libraries(adapTQ_avx2 PUBLIC adapTQ_core)
 
 if(UNIX AND NOT APPLE)
   target_link_libraries(adapTQ_core PUBLIC m)
@@ -56,6 +72,7 @@ endif()
 # runtime_context.cpp as a single TU to avoid ODR issues — do NOT list them
 # as separate RUNTIME_SOURCES.
 set(RUNTIME_SOURCES
+    kernels/kernel_selector.cpp
     runtime/runtime_context.cpp
     replay/session_snapshot.cpp
     replay/replay_engine.cpp
@@ -74,12 +91,12 @@ target_include_directories(adapTQ_runtime PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/replay
     ${CMAKE_CURRENT_SOURCE_DIR}/cli
 )
-target_link_libraries(adapTQ_runtime PUBLIC adapTQ_core)
+target_link_libraries(adapTQ_runtime PUBLIC adapTQ_core adapTQ_avx2)
 
 if(MSVC)
-  target_compile_options(adapTQ_runtime PRIVATE /arch:AVX2)
+  
 else()
-  target_compile_options(adapTQ_runtime PRIVATE -mavx2 -mfma)
+  
 endif()
 
 # ---------------------------------------------------------------------------

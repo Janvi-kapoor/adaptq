@@ -25,10 +25,6 @@
 #include "../strategies/fp_passthrough.cpp"
 /* Pull in kernel backend implementations. */
 #include "../kernels/scalar/kdot_scalar.cpp"
-#if defined(__AVX2__)
-#  include "../kernels/avx2/kdot_avx2.cpp"
-#endif
-
 namespace adaptq {
 
 /* =========================================================================
