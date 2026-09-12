@@ -90,6 +90,15 @@ TEST_CASE("adaptq_reset zeroes cache", "[api]") {
     adaptq_destroy(h);
 }
 
+TEST_CASE("adaptq_create with invalid parameters returns null", "[api][security]") {
+    REQUIRE(adaptq_create(0, 4, 1024, 42, 0.f, 0) == nullptr);
+    REQUIRE(adaptq_create(-1, 4, 1024, 42, 0.f, 0) == nullptr);
+    REQUIRE(adaptq_create(128, 0, 1024, 42, 0.f, 0) == nullptr);
+    REQUIRE(adaptq_create(128, 4, -1, 42, 0.f, 0) == nullptr);
+    REQUIRE(adaptq_create(128, 4, 1024, 42, 0.f, -100) == nullptr);
+    REQUIRE(std::string(adaptq_last_error()).size() > 0);
+}
+
 /* ---- Multi-head -------------------------------------------------------- */
 
 TEST_CASE("adaptq_mha_create / destroy", "[api][mha]") {
@@ -136,6 +145,22 @@ TEST_CASE("adaptq_mha_reset clears all heads", "[api][mha]") {
     REQUIRE(adaptq_mha_total_kv_bytes(mha) > 0);
     adaptq_mha_reset(mha);
     REQUIRE(adaptq_mha_total_kv_bytes(mha) == 0);
+    adaptq_mha_destroy(mha);
+}
+
+TEST_CASE("adaptq_mha_create with invalid parameters returns null", "[api][mha][security]") {
+    REQUIRE(adaptq_mha_create(0, 128, 4, 1024, 0, 0.f, 0) == nullptr);
+    REQUIRE(adaptq_mha_create(-1, 128, 4, 1024, 0, 0.f, 0) == nullptr);
+    REQUIRE(adaptq_mha_create(4, 0, 4, 1024, 0, 0.f, 0) == nullptr);
+    REQUIRE(adaptq_mha_create(4, 128, -1, 1024, 0, 0.f, 0) == nullptr);
+    REQUIRE(std::string(adaptq_last_error()).size() > 0);
+}
+
+TEST_CASE("adaptq_mha_append: exact upper bound head_idx sets error", "[api][mha][security]") {
+    adaptq_mha_t mha = adaptq_mha_create(4, 64, 4, 128, 0, 0.f, 0);
+    float k[64], v[64];
+    adaptq_mha_append(mha, 4, k, v, 0); // 4 is out of bounds for size 4
+    REQUIRE(std::string(adaptq_last_error()).size() > 0);
     adaptq_mha_destroy(mha);
 }
 

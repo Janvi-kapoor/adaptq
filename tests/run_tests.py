@@ -374,6 +374,11 @@ h = lib.adaptq_create(dim, 4, 512, 42, 0.0, 0)
 results.append(("create returns non-null", h is not None))
 lib.adaptq_destroy(h)
 
+# Test 1b: create with invalid dim returns null (security)
+h_inv = lib.adaptq_create(-1, 4, 512, 42, 0.0, 0)
+results.append(("create(-1) returns null", h_inv is None))
+
+
 # Test 2: kv_bytes=0 before append
 h = lib.adaptq_create(dim, 4, 512, 42, 0.0, 0)
 results.append(("kv_bytes 0 before append", lib.adaptq_kv_bytes(h) == 0))
