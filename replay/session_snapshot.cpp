@@ -247,6 +247,9 @@ SessionSnapshot SessionSnapshot::load(const std::string &path) {
     int n_heads_total = read_i32(f);
     snap.flags_       = read_u64(f);
 
+    if (n_heads_total < 0)
+        throw std::runtime_error("SessionSnapshot::load: invalid head count");
+
     snap.heads_.resize(n_heads_total);
     for (int i = 0; i < n_heads_total; ++i) {
         HeadSnapshot &hs = snap.heads_[i];
@@ -261,11 +264,15 @@ SessionSnapshot SessionSnapshot::load(const std::string &path) {
             read_bytes(f, hs.storage_data.data(), data_bytes);
 
         int n_scales = read_i32(f);
+        if (n_scales < 0)
+            throw std::runtime_error("SessionSnapshot::load: invalid scale count");
         hs.scales.resize(n_scales);
         if (n_scales > 0)
             read_bytes(f, hs.scales.data(), (size_t)n_scales * sizeof(float));
 
         int n_tags = read_i32(f);
+        if (n_tags < 0)
+            throw std::runtime_error("SessionSnapshot::load: invalid tag count");
         hs.format_tags.resize(n_tags);
         if (n_tags > 0)
             read_bytes(f, hs.format_tags.data(), (size_t)n_tags);
@@ -275,6 +282,8 @@ SessionSnapshot SessionSnapshot::load(const std::string &path) {
     if (snap.flags_ & 2u) {
         for (auto &hs : snap.heads_) {
             int slen = read_i32(f);
+            if (slen < 0)
+                throw std::runtime_error("SessionSnapshot::load: invalid strategy state size");
             hs.strategy_state.resize(slen);
             if (slen > 0)
                 read_bytes(f, hs.strategy_state.data(), (size_t)slen);
@@ -284,11 +293,15 @@ SessionSnapshot SessionSnapshot::load(const std::string &path) {
     /* Token log. */
     if (snap.flags_ & 1u) {
         int n_entries = read_i32(f);
+        if (n_entries < 0)
+            throw std::runtime_error("SessionSnapshot::load: invalid token log count");
         snap.token_log_.resize(n_entries);
         for (auto &e : snap.token_log_) {
             e.layer = read_i32(f);
             e.head  = read_i32(f);
             e.dim   = read_i32(f);
+            if (e.dim < 0)
+                throw std::runtime_error("SessionSnapshot::load: invalid token dimension");
             e.k_fp32.resize(e.dim);
             e.v_fp32.resize(e.dim);
             read_bytes(f, e.k_fp32.data(), (size_t)e.dim * sizeof(float));
