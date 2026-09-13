@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ "main", "v2" ]
 
+permissions:
+  contents: read
+
 # Cancel in-progress runs on new pushes to the same branch
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
