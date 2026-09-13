@@ -82,7 +82,7 @@ def stage1_cpp_tests():
             failed += 1
 
     # Extract summary line
-    total_ok = "100%" in out and "0 tests failed" in out
+    total_ok = "100%" in out and ("0 tests failed" in out or "passed out of" in out)
     ok = check(rc == 0 and total_ok,
                "ctest return code 0 + 100% pass",
                f"{passed} passed, {failed} failed")
