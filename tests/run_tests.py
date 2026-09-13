@@ -30,7 +30,8 @@ import time
 ADAPTQ_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _br = os.path.join(ADAPTQ_DIR, "build_release")
 _bc = os.path.join(ADAPTQ_DIR, "build_clean")
-BUILD_DIR = _bc if os.path.exists(_bc) else _br
+_b = os.path.join(ADAPTQ_DIR, "build")
+BUILD_DIR = _b if os.path.exists(_b) else (_bc if os.path.exists(_bc) else _br)
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Utilities
