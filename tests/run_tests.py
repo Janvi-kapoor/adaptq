@@ -335,7 +335,7 @@ import platform
 ADAPTQ_DIR = r"___ADAPTQ_DIR___"
 is_windows = platform.system() == "Windows"
 lib_name = "adaptq.dll" if is_windows else "libadaptq.so"
-LIB_CANDIDATES = [os.path.join(ADAPTQ_DIR, "build_clean", lib_name), os.path.join(ADAPTQ_DIR, "build_release", lib_name)]
+LIB_CANDIDATES = [os.path.join(ADAPTQ_DIR, "build", lib_name), os.path.join(ADAPTQ_DIR, "build", "Release", lib_name), os.path.join(ADAPTQ_DIR, "build_clean", lib_name), os.path.join(ADAPTQ_DIR, "build_release", lib_name)]
 LIB = next((p for p in LIB_CANDIDATES if os.path.exists(p)), LIB_CANDIDATES[0])
 
 if not os.path.exists(LIB):
@@ -500,7 +500,7 @@ import platform
 ADAPTQ_DIR = r"___ADAPTQ_DIR___"
 is_windows = platform.system() == "Windows"
 lib_name = "adaptq.dll" if is_windows else "libadaptq.so"
-LIB_CANDIDATES = [os.path.join(ADAPTQ_DIR, "build_clean", lib_name), os.path.join(ADAPTQ_DIR, "build_release", lib_name)]
+LIB_CANDIDATES = [os.path.join(ADAPTQ_DIR, "build", lib_name), os.path.join(ADAPTQ_DIR, "build", "Release", lib_name), os.path.join(ADAPTQ_DIR, "build_clean", lib_name), os.path.join(ADAPTQ_DIR, "build_release", lib_name)]
 LIB = next((p for p in LIB_CANDIDATES if os.path.exists(p)), LIB_CANDIDATES[0])
 
 if not os.path.exists(LIB):
