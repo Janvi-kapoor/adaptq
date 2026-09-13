@@ -124,7 +124,7 @@ jobs:
         # We explicitly install PyTorch here for tests/benchmarks since they require it
         run: |
           pip install torch --extra-index-url https://download.pytorch.org/whl/cpu
-          pip install -e .[dev] --no-build-isolation
+          pip install -e .[dev]
 
       - name: Verify Import
         run: |
