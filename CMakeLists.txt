@@ -34,31 +34,42 @@ set(CORE_SOURCES
     kernels/scalar/kdot_scalar.cpp
 )
 
-add_library(adapTQ_core STATIC ${CORE_SOURCES})
-target_include_directories(adapTQ_core PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
+add_library(adapTQ_core_obj OBJECT ${CORE_SOURCES})
+target_include_directories(adapTQ_core_obj PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/storage
+    ${CMAKE_CURRENT_SOURCE_DIR}/strategies
+)
 if(MSVC)
-  target_compile_options(adapTQ_core PRIVATE /openmp)
+  target_compile_options(adapTQ_core_obj PRIVATE /openmp)
 else()
-  target_compile_options(adapTQ_core PRIVATE -fopenmp)
+  target_compile_options(adapTQ_core_obj PRIVATE -fopenmp)
+  target_link_options(adapTQ_core_obj PUBLIC -fopenmp)
+endif()
+set_target_properties(adapTQ_core_obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(adapTQ_core STATIC $<TARGET_OBJECTS:adapTQ_core_obj>)
+target_include_directories(adapTQ_core PUBLIC $<TARGET_PROPERTY:adapTQ_core_obj,INCLUDE_DIRECTORIES>)
+if(NOT MSVC)
   target_link_options(adapTQ_core PUBLIC -fopenmp)
 endif()
 
 # ---------------------------------------------------------------------------
 # AVX2 kernel backend
 # ---------------------------------------------------------------------------
-add_library(adapTQ_avx2 STATIC
-    kernels/avx2/kdot_avx2.cpp
-)
-target_include_directories(adapTQ_avx2 PRIVATE
+add_library(adapTQ_avx2_obj OBJECT kernels/avx2/kdot_avx2.cpp)
+target_include_directories(adapTQ_avx2_obj PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/kernels
 )
 if(MSVC)
-  target_compile_options(adapTQ_avx2 PRIVATE /arch:AVX2)
+  target_compile_options(adapTQ_avx2_obj PRIVATE /arch:AVX2)
 else()
-  target_compile_options(adapTQ_avx2 PRIVATE -mavx2 -mfma)
+  target_compile_options(adapTQ_avx2_obj PRIVATE -mavx2 -mfma)
 endif()
+set_target_properties(adapTQ_avx2_obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(adapTQ_avx2 STATIC $<TARGET_OBJECTS:adapTQ_avx2_obj>)
 target_link_libraries(adapTQ_avx2 PUBLIC adapTQ_core)
 
 if(UNIX AND NOT APPLE)
@@ -81,8 +92,8 @@ set(RUNTIME_SOURCES
     cli/cmd_create_strategy.cpp
 )
 
-add_library(adapTQ_runtime STATIC ${RUNTIME_SOURCES})
-target_include_directories(adapTQ_runtime PUBLIC
+add_library(adapTQ_runtime_obj OBJECT ${RUNTIME_SOURCES})
+target_include_directories(adapTQ_runtime_obj PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/storage
     ${CMAKE_CURRENT_SOURCE_DIR}/strategies
@@ -91,12 +102,33 @@ target_include_directories(adapTQ_runtime PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/replay
     ${CMAKE_CURRENT_SOURCE_DIR}/cli
 )
-target_link_libraries(adapTQ_runtime PUBLIC adapTQ_core adapTQ_avx2)
-
 if(MSVC)
   
 else()
   
+endif()
+set_target_properties(adapTQ_runtime_obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(adapTQ_runtime STATIC $<TARGET_OBJECTS:adapTQ_runtime_obj>)
+target_include_directories(adapTQ_runtime PUBLIC $<TARGET_PROPERTY:adapTQ_runtime_obj,INCLUDE_DIRECTORIES>)
+target_link_libraries(adapTQ_runtime PUBLIC adapTQ_core adapTQ_avx2)
+
+
+# ---------------------------------------------------------------------------
+# Shared Library for Python C-API Integration
+# ---------------------------------------------------------------------------
+add_library(adaptq_shared SHARED 
+    $<TARGET_OBJECTS:adapTQ_core_obj>
+    $<TARGET_OBJECTS:adapTQ_avx2_obj>
+    $<TARGET_OBJECTS:adapTQ_runtime_obj>
+)
+set_target_properties(adaptq_shared PROPERTIES 
+    OUTPUT_NAME adaptq
+    WINDOWS_EXPORT_ALL_SYMBOLS ON
+)
+if(NOT MSVC)
+  target_link_options(adaptq_shared PRIVATE -fopenmp)
+  target_link_libraries(adaptq_shared PRIVATE m)
 endif()
 
 # ---------------------------------------------------------------------------
