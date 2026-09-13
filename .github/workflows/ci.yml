@@ -38,11 +38,11 @@ jobs:
                 -DCMAKE_BUILD_TYPE=Release \
                 -DADAPTQ_BUILD_TESTS=ON
 
-      - name: Build
-        run: cmake --build build --parallel
+      - name: Build CMake
+        run: cmake --build build --config Release --parallel
 
       - name: CTest (Unit, Conformance, Security)
-        run: ctest --output-on-failure --parallel 4
+        run: ctest --build-config Release --output-on-failure --parallel 4
         working-directory: build
 
       - name: Set up Python
@@ -91,10 +91,10 @@ jobs:
         shell: pwsh
 
       - name: Build
-        run: cmake --build build --parallel
+        run: cmake --build build --config Release --parallel
 
       - name: CTest (Unit, Conformance, Security)
-        run: ctest --output-on-failure --parallel 4
+        run: ctest --build-config Release --output-on-failure --parallel 4
         working-directory: build
 
       - name: Python accuracy + API integration
