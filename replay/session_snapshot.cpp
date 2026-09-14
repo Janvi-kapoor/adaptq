@@ -36,25 +36,25 @@ static void write_bytes(std::ostream &out, const void *p, size_t n) {
 
 static uint32_t read_u32(std::istream &in) {
     uint32_t v = 0;
-    in.read(reinterpret_cast<char *>(&v), 4);
-    if (in.fail()) throw std::runtime_error("SessionSnapshot::load: truncated read");
+    if (!in.read(reinterpret_cast<char *>(&v), 4))
+        throw std::runtime_error("SessionSnapshot::load: truncated snapshot");
     return v;
 }
 static uint64_t read_u64(std::istream &in) {
     uint64_t v = 0;
-    in.read(reinterpret_cast<char *>(&v), 8);
-    if (in.fail()) throw std::runtime_error("SessionSnapshot::load: truncated read");
+    if (!in.read(reinterpret_cast<char *>(&v), 8))
+        throw std::runtime_error("SessionSnapshot::load: truncated snapshot");
     return v;
 }
 static int32_t read_i32(std::istream &in) {
     int32_t v = 0;
-    in.read(reinterpret_cast<char *>(&v), 4);
-    if (in.fail()) throw std::runtime_error("SessionSnapshot::load: truncated read");
+    if (!in.read(reinterpret_cast<char *>(&v), 4))
+        throw std::runtime_error("SessionSnapshot::load: truncated snapshot");
     return v;
 }
 static void read_bytes(std::istream &in, void *p, size_t n) {
-    in.read(reinterpret_cast<char *>(p), (std::streamsize)n);
-    if (in.fail()) throw std::runtime_error("SessionSnapshot::load: truncated read");
+    if (n > 0 && !in.read(reinterpret_cast<char *>(p), (std::streamsize)n))
+        throw std::runtime_error("SessionSnapshot::load: truncated snapshot");
 }
 
 /* =========================================================================
@@ -231,10 +231,10 @@ void SessionSnapshot::save(const std::string &path) const {
 SessionSnapshot SessionSnapshot::load(const std::string &path) {
     std::ifstream f(path, std::ios::binary);
     if (!f) throw std::runtime_error("SessionSnapshot::load: cannot open " + path);
-
     f.seekg(0, std::ios::end);
     std::streamsize file_size = f.tellg();
     f.seekg(0, std::ios::beg);
+
     if (file_size < 32)
         throw std::runtime_error("SessionSnapshot::load: file too small");
 
@@ -321,10 +321,12 @@ SessionSnapshot SessionSnapshot::load(const std::string &path) {
         }
     }
 
-    if (f.fail())
+    if (!f.good() && !f.eof())
         throw std::runtime_error("SessionSnapshot::load: read error for " + path);
 
     return snap;
 }
 
 } /* namespace adaptq */
+
+
