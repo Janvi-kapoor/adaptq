@@ -12,8 +12,19 @@
 #  define ADAPTQ_PREFETCH(ptr) __builtin_prefetch((ptr), 0, 1)
 #endif
 
-#ifdef __AVX2__
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC push_options
+#pragma GCC target("avx2,fma")
+#define ADAPTQ_HAS_AVX2 1
 #include <immintrin.h>
+#elif defined(_MSC_VER) && defined(__AVX2__)
+#define ADAPTQ_HAS_AVX2 1
+#include <immintrin.h>
+#else
+#define ADAPTQ_HAS_AVX2 0
+#endif
+
+#if ADAPTQ_HAS_AVX2
 
 // Permutevar 4-bit lookup: 8 indices in ~8 cycles vs ~40 for gather
 static inline __m256 lup8(const __m256i idx, const __m256 cl, const __m256 ch) {
@@ -167,7 +178,11 @@ static void vaccum1(float *__restrict acc, const uint8_t *__restrict vp,
   }
 }
 
-#endif // __AVX2__
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC pop_options
+#endif
+
+#endif // ADAPTQ_HAS_AVX2
 
 #include <vector>
 
@@ -315,7 +330,11 @@ void AttentionHead::append_kv(const float *key, const float *val, int pos) {
   }
 }
 
-#ifdef __AVX2__
+#if ADAPTQ_HAS_AVX2
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC push_options
+#pragma GCC target("avx2,fma")
+#endif
 template <int BITS>
 static void compute_avx2(const float *qr, float *acc, const float *cb,
                          const uint8_t *kb, const uint8_t *vb,
@@ -418,6 +437,9 @@ static void compute_avx2(const float *qr, float *acc, const float *cb,
     }
   }
 }
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC pop_options
+#endif
 #endif
 
 int AttentionHead::compute(const float *q, float *out) const {
@@ -501,7 +523,12 @@ int AttentionHead::compute(const float *q, float *out) const {
 
 
   // inside compute():
-#ifdef __AVX2__
+#if ADAPTQ_HAS_AVX2
+  bool use_avx2 = true;
+#if defined(__GNUC__) || defined(__clang__)
+  use_avx2 = __builtin_cpu_supports("avx2") && __builtin_cpu_supports("fma");
+#endif
+  if (use_avx2) {
   if (bits == 4) {
     compute_avx2<4>(qr, acc, cb, kb, vb, kv_buf.k_scale.data(),
                     kv_buf.v_scale.data(), attn_s, isp, slots, n, pb, padded,
@@ -523,6 +550,7 @@ int AttentionHead::compute(const float *q, float *out) const {
     fwht_inverse(acc, quant.D.data(), padded);
     memcpy(out, acc, dim * sizeof(float));
     return n;
+  }
   }
 #endif
 

@@ -257,6 +257,13 @@ SessionSnapshot SessionSnapshot::load(const std::string &path) {
     int n_heads_total = read_i32(f);
     snap.flags_       = read_u64(f);
 
+    if (snap.dim_ <= 0)
+        throw std::runtime_error("SessionSnapshot::load: invalid dim");
+    if (snap.bits_ < 2 || snap.bits_ > 4)
+        throw std::runtime_error("SessionSnapshot::load: invalid bits (must be 2, 3, or 4)");
+    if (snap.n_tokens_ < 0)
+        throw std::runtime_error("SessionSnapshot::load: invalid n_tokens");
+
     if (n_heads_total < 0 || (size_t)n_heads_total > (size_t)file_size)
         throw std::runtime_error("SessionSnapshot::load: invalid n_heads_total");
 

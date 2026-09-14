@@ -225,7 +225,8 @@ TEST_CASE("multi-head API rejects null handles and buffers without crashing", "[
 
     adaptq_mha_destroy(nullptr);
 
-    adaptq_mha_t mha = adaptq_mha_create(2, 64, 8, 4, 0, 0.f, 0);
+    adaptq_mha_t mha = adaptq_mha_create(2, 64, 4, 4, 0, 0.f, 0);
+    INFO(adaptq_last_error());
     REQUIRE(mha != nullptr);
 
     adaptq_mha_append(mha, 0, nullptr, v, 0);
@@ -292,6 +293,34 @@ TEST_CASE("adaptq context handles sizes around and above 65536 tokens", "[api][l
         int n = adaptq_compute(h, q, out);
         REQUIRE(n == target);
     }
+
+    adaptq_destroy(h);
+}
+
+/* ---- Boundary Conditions (Issue #16) ---------------------------------- */
+
+TEST_CASE("Max-Lloyd codebooks handle boundary conditions and outlier vectors without crashing", "[api][security][boundary]") {
+    adaptq_ctx_t h = adaptq_create(64, 4, 128, 42, 0.f, 0);
+    REQUIRE(h != nullptr);
+
+    float q[64] = {}, out[64] = {};
+    float k_zeros[64] = {}, v_zeros[64] = {};
+    float k_nans[64], v_nans[64];
+    float k_huge[64], v_huge[64];
+    
+    for (int i = 0; i < 64; ++i) {
+        k_nans[i] = std::nanf("");
+        v_nans[i] = std::nanf("");
+        k_huge[i] = 1e38f;
+        v_huge[i] = -1e38f;
+    }
+
+    adaptq_append(h, k_zeros, v_zeros, 0);
+    adaptq_append(h, k_nans, v_nans, 1);
+    adaptq_append(h, k_huge, v_huge, 2);
+
+    int n = adaptq_compute(h, q, out);
+    REQUIRE(n == 3);
 
     adaptq_destroy(h);
 }
