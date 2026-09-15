@@ -50,6 +50,17 @@ TEST_CASE("ContiguousSlabStorage: ring eviction at capacity", "[storage][contigu
     REQUIRE(r.data[0] == 99);
 }
 
+TEST_CASE("ContiguousSlabStorage: capacity boundaries and validation", "[storage][contiguous]") {
+    ContiguousSlabStorage st;
+    REQUIRE_THROWS_AS(st.init(0, 8), std::invalid_argument);
+    REQUIRE_THROWS_AS(st.init(1, 8), std::invalid_argument);
+    REQUIRE_THROWS_AS(st.init(3, 8), std::invalid_argument);
+    REQUIRE_THROWS_AS(st.init(4, 0), std::invalid_argument);
+
+    st.init(4, 8);
+    REQUIRE(st.capacity() == 4);
+}
+
 TEST_CASE("ContiguousSlabStorage: KV writes stay paired across wrap", "[storage][contiguous][kv]") {
     ContiguousSlabStorage st;
     st.init(4, 4); /* two logical K/V pairs */

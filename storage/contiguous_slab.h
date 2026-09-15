@@ -25,7 +25,8 @@ public:
     ContiguousSlabStorage &operator=(const ContiguousSlabStorage &) = delete;
 
     void init(int capacity, int max_slot_bytes) override {
-        assert(capacity > 0 && max_slot_bytes > 0);
+        if (capacity < 2 || (capacity % 2 != 0) || max_slot_bytes <= 0)
+            throw std::invalid_argument("ContiguousSlabStorage::init: capacity must be >= 2 and even, max_slot_bytes > 0");
         if (data_) aligned_free(data_);
         capacity_   = capacity;
         slot_bytes_ = max_slot_bytes;

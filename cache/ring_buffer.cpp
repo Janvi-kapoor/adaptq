@@ -1,10 +1,13 @@
 #include "../include/ring_buffer.h"
 #include <cstring>
+#include <stdexcept>
 #include <utility>
 
 // KVRingBuffer (original, scatter-allocated — kept for backward compat)
 
 void KVRingBuffer::init(int cap) {
+  if (cap <= 0)
+    throw std::invalid_argument("KVRingBuffer::init: cap must be positive");
   capacity = cap;
   head = 0;
   size = 0;
@@ -13,6 +16,8 @@ void KVRingBuffer::init(int cap) {
 
 int KVRingBuffer::insert(QuantizedVec qk, QuantizedVec qv, int token_pos,
                          float importance) {
+  if (capacity <= 0)
+    return -1;
   int idx = head;
   slots[idx].qk = std::move(qk);
   slots[idx].qv = std::move(qv);
@@ -45,6 +50,8 @@ size_t KVRingBuffer::memory_bytes() const {
 // KVFlatBuffer (new — contiguous storage for sequential DRAM access)
 
 void KVFlatBuffer::init(int cap, int padded, int b) {
+  if (cap <= 0 || padded <= 0 || b <= 0)
+    throw std::invalid_argument("KVFlatBuffer::init: cap, padded, and b must be positive");
   capacity = cap;
   padded_dim = padded;
   bits = b;
