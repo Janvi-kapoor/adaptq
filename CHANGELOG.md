@@ -3,6 +3,13 @@
 All notable changes to AdapTQ are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Added
+- **Ollama Streaming Generation**: Implemented `generate_streaming()` in `OllamaAdapter` using chunked NDJSON streaming via `/api/generate` with `stream: True`. Resolves issue where Ollama adapter yielded no tokens due to `decode_next()` returning `None`.
+- **Ollama Demo Streaming Flag**: Added `--stream` option to `examples/ollama_demo.py` to showcase token streaming in real-time.
+- **Unit Tests**: Added offline mock unit test suite in `tests/test_ollama_streaming.py` validating ordered fragment delivery, skipped malformed chunks, HTTP error reporting, and post-exhaustion metric capture.
+
 ---
 
 ## [0.2.2] — 2026-09-14 — V2.2: Stabilization & Security Baseline
