@@ -324,3 +324,30 @@ TEST_CASE("Max-Lloyd codebooks handle boundary conditions and outlier vectors wi
 
     adaptq_destroy(h);
 }
+
+/* ---- MHA Lifecycle and Null Safety (Issue #60) ------------------------ */
+TEST_CASE("MHA handles creation failure rollback and null safety cleanly", "[api][mha][safety]") {
+    // Zero or negative heads
+    REQUIRE(adaptq_mha_create(0, 64, 4, 128, 42, 0.f, 0) == nullptr);
+    REQUIRE(adaptq_mha_create(-2, 64, 4, 128, 42, 0.f, 0) == nullptr);
+
+    // Invalid bit width
+    REQUIRE(adaptq_mha_create(4, 64, 5, 128, 42, 0.f, 0) == nullptr);
+
+    // Valid creation and basic inspection
+    adaptq_mha_t mha = adaptq_mha_create(2, 64, 4, 128, 42, 0.f, 0);
+    REQUIRE(mha != nullptr);
+    REQUIRE(adaptq_mha_total_kv_bytes(mha) == 0);
+
+    // Out of range head index checks
+    float k[64] = {}, v[64] = {}, q[64] = {}, out[64] = {};
+    adaptq_mha_append(mha, -1, k, v, 0);
+    adaptq_mha_append(mha, 2, k, v, 0);
+    REQUIRE(adaptq_mha_compute(mha, -1, q, out) == -1);
+    REQUIRE(adaptq_mha_compute(mha, 2, q, out) == -1);
+
+    adaptq_mha_reset(mha);
+    adaptq_mha_destroy(mha);
+    // Double destroy on nullptr should be no-op
+    adaptq_mha_destroy(nullptr);
+}
