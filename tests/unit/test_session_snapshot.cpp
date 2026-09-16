@@ -39,12 +39,13 @@ static void write_i32(std::ostream &out, int32_t v) {
 /* Returns a heap-allocated RuntimeContext (non-copyable, so use unique_ptr). */
 static std::unique_ptr<RuntimeContext> make_ctx_with_tokens(int n_tokens,
                                                              int dim = 64,
-                                                             bool log = true) {
+                                                             bool log = true,
+                                                             int bits = 4) {
     RuntimeContextConfig cfg;
     cfg.n_layers   = 1;
     cfg.n_heads    = 1;
     cfg.dim        = dim;
-    cfg.bits       = 4;
+    cfg.bits       = bits;
     cfg.capacity   = 128;
     cfg.log_tokens = log;
 
@@ -102,6 +103,13 @@ TEST_CASE("SessionSnapshot: capture with token log contains entries", "[snapshot
         REQUIRE(e.dim        == 64);
         REQUIRE(e.k_fp32.size() == 64u);
         REQUIRE(e.v_fp32.size() == 64u);
+    }
+}
+
+TEST_CASE("SessionSnapshot: preserves configured bit width", "[snapshot]") {
+    for (int bits : {2, 3, 4}) {
+        auto ctx = make_ctx_with_tokens(1, 64, true, bits);
+        REQUIRE(SessionSnapshot::capture(*ctx, true).bits() == bits);
     }
 }
 
